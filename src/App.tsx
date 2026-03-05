@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import DisclaimerPage from './pages/DisclaimerPage';
 import HomePage from './pages/HomePage';
 import RankingPage from './pages/RankingPage';
@@ -35,10 +35,9 @@ const initialState: AppState = {
 
 function App() {
   const navigate = useNavigate();
-  const location = useLocation();
+
   const [state, setState] = useState<AppState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
 
   // 页面映射
   const pageRoutes = [
@@ -51,14 +50,6 @@ function App() {
     '/shit',        // Page 7
     '/share',       // Page 8
   ];
-
-  // 根据路由设置当前页码
-  useEffect(() => {
-    const index = pageRoutes.indexOf(location.pathname);
-    if (index !== -1) {
-      setCurrentPage(index + 1);
-    }
-  }, [location.pathname]);
 
   // 模拟加载
   useEffect(() => {
@@ -130,7 +121,6 @@ function App() {
   // 页面指示器组件
   const PageIndicator = () => (
     <div className="page-indicator" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-      <span>PAGE {currentPage}</span>
       <a 
         href="https://github.com/bionexit/come_on_asshole" 
         target="_blank" 
