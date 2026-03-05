@@ -225,20 +225,38 @@ PRs welcome! Whether it's:
 
 ## 📸 截图预览 | Screenshots
 
-```
-┌─────────────────────────────────────┐
-│  COME ON                            │
-│  ASSHOLE!           [GitHub icon]   │
-│                                     │
-│  甩锅侠 —— 责任推卸专家              │
-│  Buck-Passer                        │
-│  ┌─────────────┐                    │
-│  │ 组织癌症级  │                    │
-│  └─────────────┘                    │
-│                                     │
-│  ← 不是      是的 →                │
-└─────────────────────────────────────┘
-```
+<div align="center">
+
+### 📱 应用流程展示 | App Flow Showcase
+
+<table>
+  <tr>
+    <td align="center"><b>1. 免责声明</b><br><i>Disclaimer</i></td>
+    <td align="center"><b>2. 选择战场</b><br><i>Select Battlefield</i></td>
+    <td align="center"><b>3. 冥想环节</b><br><i>Meditation</i></td>
+    <td align="center"><b>4. 投票鉴定</b><br><i>Voting</i></td>
+  </tr>
+  <tr>
+    <td><img src="screen_shot/01_disclaimer.png" width="180" alt="免责声明"/></td>
+    <td><img src="screen_shot/02_home.png" width="180" alt="首页"/></td>
+    <td><img src="screen_shot/03_meditation.png" width="180" alt="冥想"/></td>
+    <td><img src="screen_shot/04_vote.png" width="180" alt="投票"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>5. 揭露真相</b><br><i>Name Entry</i></td>
+    <td align="center"><b>6. 投喂时间</b><br><i>Poop Flinging</i></td>
+    <td align="center"><b>7. 分享战绩</b><br><i>Share Results</i></td>
+    <td align="center"><b>8. 评价报告</b><br><i>Rating Report</i></td>
+  </tr>
+  <tr>
+    <td><img src="screen_shot/05_name.png" width="180" alt="输入姓名"/></td>
+    <td><img src="screen_shot/06_shit.png" width="180" alt="投喂"/></td>
+    <td><img src="screen_shot/07_share.png" width="180" alt="分享"/></td>
+    <td><img src="screen_shot/08_rating_popup.png" width="180" alt="评价"/></td>
+  </tr>
+</table>
+
+</div>
 
 ---
 
