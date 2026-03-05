@@ -60,13 +60,14 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
   const handleShare = (_platform: string, e: React.MouseEvent<HTMLButtonElement>) => {
     createSoundEffect(e.currentTarget, 'SHARE!');
     
-    const text = `我在${companyName || '某家公司'}给${maskedName}投喂了${shits}个粑粑！快来一起吐槽职场翔王吧！`;
+    const url = window.location.href;
+    const text = `我在${companyName || '某家公司'}给${maskedName}投喂了${shits}个粑粑！快来一起吐槽职场翔王吧！\n\n${url}`;
     
     if (navigator.share) {
       navigator.share({
         title: 'Come On Asshole - 职场翔王排行榜',
         text: text,
-        url: window.location.href
+        url: url
       }).catch(() => {
         console.log('分享取消');
       });
