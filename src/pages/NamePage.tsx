@@ -3,10 +3,11 @@ import { createSoundEffect } from '../utils/animations';
 import { maskName } from '../utils/nameMasker';
 
 interface NamePageProps {
+  companyName: string;
   onComplete: (realName: string, maskedName: string) => void;
 }
 
-function NamePage({ onComplete }: NamePageProps) {
+function NamePage({ companyName, onComplete }: NamePageProps) {
   const [realName, setRealName] = useState('');
   const [maskedName, setMaskedName] = useState('');
   const [error, setError] = useState('');
@@ -14,9 +15,9 @@ function NamePage({ onComplete }: NamePageProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const updateMaskedName = useCallback((name: string) => {
-    const masked = maskName(name);
+    const masked = maskName(name, companyName);
     setMaskedName(masked);
-  }, []);
+  }, [companyName]);
 
   const handleCompositionStart = () => {
     setIsComposing(true);

@@ -228,6 +228,7 @@ function App() {
               path="/name" 
               element={
                 <NamePage 
+                  companyName={state.companyName}
                   onComplete={(realName, maskedName) => {
                     updateState({ realName, maskedName });
                     goToPage(7);
