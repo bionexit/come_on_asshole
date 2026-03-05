@@ -12,6 +12,8 @@ deploy-docker.sh
 deploy.sh
 deploy.bat
 local.db
+data/*.db
+data/*.db-journal
 screen_shot
 *.md
 .docusaurus

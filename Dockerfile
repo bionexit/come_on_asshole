@@ -15,17 +15,40 @@ COPY . .
 # 构建项目
 RUN npm run build
 
-# 生产阶段 - 使用 Nginx
-FROM nginx:alpine
+# 生产阶段
+FROM node:20-alpine
 
-# 复制构建产物到 Nginx 目录
-COPY --from=builder /app/dist /usr/share/nginx/html
+# 安装必要的工具
+RUN apk add --no-cache curl
 
-# 复制自定义 Nginx 配置
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
+
+# 复制 package.json
+COPY package*.json ./
+
+# 只安装生产依赖
+RUN npm ci --omit=dev
+
+# 复制构建产物
+COPY --from=builder /app/dist ./dist
+
+# 复制服务器必要文件
+COPY --from=builder /app/server.js ./
+COPY --from=builder /app/src ./src
+
+# 创建数据目录并设置权限
+RUN mkdir -p /app/data && chmod 777 /app/data
+
+# 设置环境变量
+ENV NODE_ENV=production
+ENV PORT=5173
 
 # 暴露端口
-EXPOSE 80
+EXPOSE 5173
 
-# 启动 Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5173/health || exit 1
+
+# 启动命令
+CMD ["node", "server.js"]

@@ -7,11 +7,17 @@ services:
       dockerfile: Dockerfile
     container_name: come-on-asshole
     ports:
-      - "5173:80"
+      - "5173:5173"
+    volumes:
+      # 持久化数据库文件
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=5173
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "curl", "--fail", "http://localhost:5173/health", "||", "exit", "1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 10s
