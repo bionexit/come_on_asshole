@@ -30,3 +30,8 @@ dist-ssr
 # Environment files
 .env
 .env.production
+
+# Deploy scripts (private)
+deploy-docker.sh
+deploy-remote.sh
+deploy-nginx.sh
