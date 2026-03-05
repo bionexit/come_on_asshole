@@ -76,7 +76,7 @@ function NamePage({ onComplete }: NamePageProps) {
         flexDirection: 'column',
         minHeight: '100vh',
         height: '100vh',
-        overflow: 'hidden',
+        overflow: 'auto',
         position: 'relative'
       }}
     >

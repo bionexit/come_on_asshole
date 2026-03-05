@@ -97,7 +97,7 @@ function RankingPage({ companyName, companyId, onBack }: RankingPageProps) {
         flexDirection: 'column',
         minHeight: '100vh',
         height: '100vh',
-        overflow: 'hidden',
+        overflow: 'auto',
         position: 'relative'
       }}
     >

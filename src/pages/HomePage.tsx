@@ -144,7 +144,7 @@ function HomePage({ onNext, onGoToRanking, onGoToMeditation }: HomePageProps) {
         flexDirection: 'column',
         minHeight: '100vh',
         height: '100vh',
-        overflow: 'hidden',
+        overflow: 'auto',
         position: 'relative'
       }}
     >
