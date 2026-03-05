@@ -150,11 +150,6 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
   // 获取评价
   const rating = summary ? getSummaryRating(summary.max_score) : null;
 
-  const handleReplay = (e: React.MouseEvent<HTMLButtonElement>) => {
-    createSoundEffect(e.currentTarget, 'AGAIN!');
-    window.location.reload();
-  };
-
   return (
     <div 
       className="comic-page active" 
@@ -400,16 +395,6 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
           📊 查看排行榜
         </button>
 
-        {/* <button
-          className="comic-btn secondary"
-          onClick={handleReplay}
-          style={{ 
-            padding: 'clamp(12px, 3.5vh, 18px)',
-            fontSize: 'clamp(0.9rem, 3vh, 1.1rem)'
-          }}
-        >
-          🔄 再玩一次
-        </button> */}
       </div>
 
 
