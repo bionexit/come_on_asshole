@@ -37,3 +37,7 @@ data/*.db-journal
 deploy-docker.sh
 deploy-remote.sh
 deploy-nginx.sh
+
+# Keep deploy skill
+!/.skills/
+!deploy.sh
