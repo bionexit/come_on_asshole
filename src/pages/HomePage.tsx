@@ -198,13 +198,13 @@ function HomePage({ onNext, onGoToRanking, onGoToMeditation }: HomePageProps) {
               display: 'block'
             }}
           >
-            公司名称（最多5个字）
+            公司简称（最多5个字）
           </label>
           <input
             ref={inputRef}
             type="text"
             className="comic-input"
-            placeholder="输入公司名称..."
+            placeholder="输入公司简称..."
             value={companyName}
             onChange={handleInputChange}
             onCompositionStart={handleCompositionStart}

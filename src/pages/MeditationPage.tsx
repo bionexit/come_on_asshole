@@ -14,6 +14,10 @@ const MEDITATION_TEXTS = [
     subtext: '那副嘴脸，那副德行...'
   },
   {
+    text: '裁决只在一念间',
+    subtext: '再多想你半秒都要吐...'
+  },
+  {
     text: '完了，挥之不去了',
     subtext: '深呼吸，准备开始审判！'
   }

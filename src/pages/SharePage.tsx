@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
 import { createSoundEffect, createExplosion } from '../utils/animations';
 import { getSummary, type SummaryDetail } from '../api/client';
 import { getSummaryRating } from '../types';
@@ -78,12 +79,32 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
     }
   };
 
-  const handleSave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSave = async (e: React.MouseEvent<HTMLButtonElement>) => {
     createSoundEffect(e.currentTarget, 'SAVE!');
     
-    setTimeout(() => {
-      alert('图片已保存到相册！\n\n（演示版本：实际图片生成功能需要接入后端服务）');
-    }, 500);
+    if (!canvasRef.current) {
+      alert('截图失败：找不到分享内容');
+      return;
+    }
+
+    try {
+      const dataUrl = await toPng(canvasRef.current, {
+        quality: 0.95,
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
+      });
+      
+      // 创建下载链接
+      const link = document.createElement('a');
+      link.download = `翔王投喂记录_${maskedName}_${shits}个粑粑.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('截图失败:', error);
+      alert('截图保存失败，请重试');
+    }
   };
 
   // 加载汇总信息
@@ -167,9 +188,9 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
             lineHeight: 1.2
           }}
         >
-          分享你的
+          拉出来
           <br />
-          战绩
+          就爽了
         </h2>
       </div>
 
@@ -233,9 +254,11 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
                 <br />
               </>
             )}
-            👤 {maskedName || '匿名翔王'}
+            👤 您为{maskedName || '匿名翔王'}
             <br />
-            💩 投喂了 <span style={{ color: 'var(--accent-red)', fontSize: 'clamp(1.1rem, 4vh, 1.4rem)' }}>{shits}</span> 个粑粑
+            投喂了 <span style={{ color: 'var(--accent-red)', fontSize: 'clamp(1.1rem, 4vh, 1.4rem)' }}>{shits}</span> 个粑粑💩 
+            <br />
+            TA 好感动
           </div>
 
           {/* 底部二维码区域 */}
@@ -297,6 +320,33 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
         )}
       </div>
 
+      {/* 提示语区域 - 占 13% 高度 */}
+      <div 
+        style={{ 
+          height: '13vh',
+          minHeight: '60px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          padding: '0 clamp(16px, 4vw, 24px)',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div 
+          className="speech-bubble" 
+          style={{ 
+            fontSize: 'clamp(0.75rem, 2.5vh, 0.9rem)',
+            textAlign: 'center',
+            padding: 'clamp(10px, 2.5vh, 14px)',
+            maxWidth: '360px'
+          }}
+        >
+          分享给你的同事们！
+          <br />
+          让更多人认识这位"优秀人才"~ 😏
+        </div>
+      </div>
       {/* 按钮区域 - 占 30% 高度 */}
       <div 
         style={{ 
@@ -350,7 +400,7 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
           📊 查看排行榜
         </button>
 
-        <button
+        {/* <button
           className="comic-btn secondary"
           onClick={handleReplay}
           style={{ 
@@ -359,36 +409,9 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
           }}
         >
           🔄 再玩一次
-        </button>
+        </button> */}
       </div>
 
-      {/* 提示语区域 - 占 13% 高度 */}
-      <div 
-        style={{ 
-          height: '13vh',
-          minHeight: '60px',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          padding: '0 clamp(16px, 4vw, 24px)',
-          boxSizing: 'border-box'
-        }}
-      >
-        <div 
-          className="speech-bubble" 
-          style={{ 
-            fontSize: 'clamp(0.75rem, 2.5vh, 0.9rem)',
-            textAlign: 'center',
-            padding: 'clamp(10px, 2.5vh, 14px)',
-            maxWidth: '360px'
-          }}
-        >
-          分享给你的同事们！
-          <br />
-          让更多人认识这位"优秀人才"~ 😏
-        </div>
-      </div>
 
       {/* 评价弹窗 */}
       {showRatingDetail && (

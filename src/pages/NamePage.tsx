@@ -107,6 +107,21 @@ function NamePage({ onComplete }: NamePageProps) {
       </div>
 
       {/* 输入区域 - 占 40% 高度 */}
+      {!maskedName && (
+          <div 
+            className="speech-bubble" 
+            style={{ 
+              fontSize: 'clamp(0.8rem, 2.8vh, 0.95rem)',
+              marginTop: 'clamp(12px, 3vh, 20px)',
+              textAlign: 'center',
+              padding: 'clamp(10px, 2.5vh, 14px)'
+            }}
+          >
+            放心，法制社会救了TA！
+            <br />
+            真实姓名只会用来生成脱敏版本~ 😏
+          </div>
+        )}
       <div 
         className="comic-panel tilt-left"
         style={{ 
@@ -166,7 +181,7 @@ function NamePage({ onComplete }: NamePageProps) {
           fontStyle: 'italic',
           paddingTop: 'clamp(8px, 2vh, 12px)'
         }}>
-          💡 你的输入会被脱敏处理，保护隐私
+          💡 承诺不会记录任何隐私敏感数据
         </div>
       </div>
 
@@ -222,6 +237,7 @@ function NamePage({ onComplete }: NamePageProps) {
         boxSizing: 'border-box',
         marginTop: 'auto'
       }}>
+        
         <button
           className="comic-btn"
           onClick={handleConfirm}
@@ -234,21 +250,7 @@ function NamePage({ onComplete }: NamePageProps) {
           确认，继续 →
         </button>
 
-        {!maskedName && (
-          <div 
-            className="speech-bubble" 
-            style={{ 
-              fontSize: 'clamp(0.8rem, 2.8vh, 0.95rem)',
-              marginTop: 'clamp(12px, 3vh, 20px)',
-              textAlign: 'center',
-              padding: 'clamp(10px, 2.5vh, 14px)'
-            }}
-          >
-            放心，我们会保护好你的隐私！
-            <br />
-            真实姓名只会用来生成脱敏版本~ 😏
-          </div>
-        )}
+        
       </div>
     </div>
   );

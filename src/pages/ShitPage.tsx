@@ -217,7 +217,7 @@ function ShitPage({ maskedName, onComplete }: ShitPageProps) {
               position: 'absolute',
               left: `${shit.left}%`,
               top: '25%',
-              fontSize: 'clamp(1.1rem, 3.5vh, 1.5rem)',
+              fontSize: 'clamp(5rem, 3.5vh, 1.5rem)',
               zIndex: 5,
               animation: `drop 1.5s ease-in ${shit.delay}s forwards`
             }}
@@ -253,7 +253,31 @@ function ShitPage({ maskedName, onComplete }: ShitPageProps) {
           transition: 'height 0.3s ease-out'
         }} />
       </div>
-
+      {/* 提示语区域 - 占 10% 高度 */}
+      <div 
+        style={{ 
+          height: '10vh',
+          minHeight: '50px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          padding: '0 clamp(16px, 4vw, 24px)',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div 
+          className="speech-bubble" 
+          style={{ 
+            fontSize: 'clamp(0.75rem, 2.5vh, 0.9rem)',
+            textAlign: 'center',
+            padding: 'clamp(10px, 2.5vh, 2px)',
+            maxWidth: '360px'
+          }}
+        >
+          谁一天能无限撇翔?超过99真就拉不出来了~ 😂
+        </div>
+      </div>
       {/* 控制按钮区域 - 占 12% 高度 */}
       <div 
         style={{ 
@@ -293,31 +317,7 @@ function ShitPage({ maskedName, onComplete }: ShitPageProps) {
         </button>
       </div>
 
-      {/* 提示语区域 - 占 10% 高度 */}
-      <div 
-        style={{ 
-          height: '10vh',
-          minHeight: '50px',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'center',
-          padding: '0 clamp(16px, 4vw, 24px)',
-          boxSizing: 'border-box'
-        }}
-      >
-        <div 
-          className="speech-bubble" 
-          style={{ 
-            fontSize: 'clamp(0.75rem, 2.5vh, 0.9rem)',
-            textAlign: 'center',
-            padding: 'clamp(10px, 2.5vh, 14px)',
-            maxWidth: '360px'
-          }}
-        >
-          尽情投喂吧！最多99个，超过就拉不出来了~ 😂
-        </div>
-      </div>
+      
 
       {/* 动画样式 */}
       <style>{`
