@@ -142,10 +142,11 @@ function HomePage({ onNext, onGoToRanking, onGoToMeditation }: HomePageProps) {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
-        height: '100vh',
+        minHeight: '100dvh',
+        height: '100dvh',
         overflow: 'auto',
-        position: 'relative'
+        position: 'relative',
+        paddingBottom: 'env(safe-area-inset-bottom, 20px)'
       }}
     >
       {/* 标题区域 - 占 18% 高度 */}
