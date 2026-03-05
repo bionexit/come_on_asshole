@@ -130,7 +130,7 @@ function App() {
   // 页面指示器组件
   const PageIndicator = () => (
     <div className="page-indicator" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
+      <span>PAGE {currentPage}</span>
       <a 
         href="https://github.com/bionexit/come_on_asshole" 
         target="_blank" 
