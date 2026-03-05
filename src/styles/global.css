@@ -1,0 +1,689 @@
+:root {
+  --ink-black: #000000;
+  --paper-white: #ffffff;
+  --halftone-gray: #e0e0e0;
+  --accent-red: #ff0000;
+  --accent-yellow: #ffff00;
+  
+  --comic-border: 4px solid var(--ink-black);
+  --comic-shadow: 6px 6px 0px var(--ink-black);
+  --comic-shadow-sm: 3px 3px 0px var(--ink-black);
+  --font-comic: 'Bangers', 'Noto Sans SC', cursive;
+  
+  /* 动态视口高度变量 */
+  --vh: 1vh;
+  --nav-height: 80px;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-comic);
+  background-color: var(--paper-white);
+  color: var(--ink-black);
+  height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* 漫画网点纸背景 */
+.comic-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background-color: var(--paper-white);
+  background-image: radial-gradient(circle, #000 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.1;
+}
+
+/* 速度线 */
+.speed-lines {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 200vmax;
+  height: 200vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 5deg,
+    rgba(0,0,0,0.03) 5deg,
+    rgba(0,0,0,0.03) 6deg
+  );
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+  animation: rotate 60s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* 主容器 */
+.app-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 页面包装器 */
+.pages-wrapper {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+  scrollbar-width: none;
+  z-index: 1;
+}
+
+/* 页面容器 - Flex 布局确保自适应 */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding-bottom: clamp(80px, 15vh, 120px);
+}
+
+.pages-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* 漫画页面 */
+.comic-page {
+  width: 100%;
+  min-height: 100%;
+  padding: 20px;
+  display: none;
+  position: relative;
+}
+
+.comic-page.active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页码指示器 */
+.page-indicator {
+  position: absolute;
+  top: calc(10px + var(--safe-top));
+  right: 10px;
+  background: var(--ink-black);
+  color: white;
+  padding: 8px 16px;
+  font-size: 1rem;
+  font-weight: 900;
+  border: 3px solid white;
+  box-shadow: 4px 4px 0 var(--ink-black);
+  transform: rotate(3deg);
+  z-index: 50;
+}
+
+/* 漫画标题 - 英文样式（默认） */
+.comic-title {
+  font-size: clamp(2rem, 10vw, 3.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: center;
+  margin: 1rem 0;
+  position: relative;
+  transform: rotate(-2deg);
+  text-shadow: 4px 4px 0px var(--accent-yellow), 
+               8px 8px 0px var(--ink-black);
+  -webkit-text-stroke: 2px var(--ink-black);
+  color: var(--accent-red);
+  animation: shake 2s ease-in-out infinite;
+  line-height: 1;
+}
+
+/* 漫画标题 - 中文样式 */
+.comic-title-zh {
+  font-size: clamp(1.8rem, 8vw, 3rem);
+  text-transform: none;
+  letter-spacing: 1px;
+  transform: rotate(-1deg);
+  text-shadow: 3px 3px 0px var(--accent-yellow), 
+               6px 6px 0px rgba(0, 0, 0, 0.3);
+  -webkit-text-stroke: 1.5px var(--ink-black);
+  line-height: 1.3;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(-2deg) scale(1); }
+  50% { transform: rotate(2deg) scale(1.05); }
+}
+
+/* 漫画对话框 */
+.speech-bubble {
+  position: relative;
+  background: var(--paper-white);
+  border: var(--comic-border);
+  border-radius: 20px;
+  padding: 15px;
+  margin: 15px 0;
+  box-shadow: var(--comic-shadow);
+  font-size: clamp(0.9rem, 4vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.4;
+  transform: rotate(-1deg);
+  transition: transform 0.2s;
+  word-wrap: break-word;
+}
+
+.speech-bubble:active {
+  transform: rotate(1deg) scale(0.98);
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: 30px;
+  border: 20px solid transparent;
+  border-top-color: var(--ink-black);
+  border-bottom: 0;
+  border-left: 0;
+  margin-left: -10px;
+  margin-bottom: -4px;
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -14px;
+  left: 30px;
+  border: 14px solid transparent;
+  border-top-color: var(--paper-white);
+  border-bottom: 0;
+  border-left: 0;
+  margin-left: -7px;
+}
+
+/* 漫画按钮 */
+.comic-btn {
+  display: inline-block;
+  width: 100%;
+  padding: clamp(12px, 4vw, 20px);
+  margin: 8px 0;
+  background: var(--accent-yellow);
+  border: var(--comic-border);
+  font-family: var(--font-comic);
+  font-size: clamp(1rem, 5vw, 1.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  position: relative;
+  box-shadow: var(--comic-shadow);
+  transform: skew(-2deg);
+  transition: all 0.1s;
+  color: var(--ink-black);
+  text-align: center;
+  touch-action: manipulation;
+}
+
+.comic-btn.secondary {
+  background: var(--accent-red);
+  color: white;
+}
+
+.comic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comic-btn:not(:disabled):active {
+  transform: skew(-2deg) translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--ink-black);
+}
+
+/* 漫画卡片 */
+.comic-panel {
+  background: white;
+  border: var(--comic-border);
+  padding: clamp(12px, 4vw, 20px);
+  margin: 15px 0;
+  box-shadow: var(--comic-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.comic-panel.tilt-left { transform: rotate(-2deg); }
+.comic-panel.tilt-right { transform: rotate(2deg); }
+
+/* 列表项 */
+.comic-list {
+  list-style: none;
+  margin: 10px 0;
+}
+
+.comic-list-item {
+  background: white;
+  border: 3px solid var(--ink-black);
+  margin: 8px 0;
+  padding: 12px;
+  position: relative;
+  box-shadow: 4px 4px 0 var(--ink-black);
+  transform: translateX(0);
+  transition: all 0.2s;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: clamp(0.9rem, 4vw, 1.1rem);
+}
+
+.comic-list-item:nth-child(odd) {
+  transform: rotate(-1deg);
+  border-left: 6px solid var(--accent-yellow);
+}
+
+.comic-list-item:nth-child(even) {
+  transform: rotate(1deg);
+  border-right: 6px solid var(--accent-red);
+}
+
+.comic-list-item:active {
+  transform: translateX(5px) rotate(0deg) !important;
+  box-shadow: 0px 0px 0 var(--ink-black);
+}
+
+/* 输入框 */
+.comic-input-group {
+  margin: 15px 0;
+  position: relative;
+}
+
+.comic-label {
+  display: inline-block;
+  background: var(--ink-black);
+  color: white;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  transform: skew(-5deg);
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.comic-input {
+  width: 100%;
+  padding: 12px;
+  border: 3px solid var(--ink-black);
+  font-family: var(--font-comic);
+  font-size: 1rem;
+  background: white;
+  box-shadow: var(--comic-shadow-sm);
+  transform: rotate(-0.5deg);
+  transition: all 0.2s;
+  -webkit-appearance: none;
+}
+
+.comic-input:focus {
+  outline: none;
+  transform: rotate(0.5deg) scale(1.01);
+  box-shadow: 6px 6px 0 var(--ink-black);
+}
+
+/* 下拉列表 */
+.comic-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 3px solid var(--ink-black);
+  border-top: none;
+  box-shadow: var(--comic-shadow);
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.comic-dropdown-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  border-bottom: 2px solid var(--halftone-gray);
+}
+
+.comic-dropdown-item:hover,
+.comic-dropdown-item.selected {
+  background: var(--accent-yellow);
+}
+
+/* 切换开关 */
+.comic-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.comic-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.comic-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white;
+  border: 3px solid var(--ink-black);
+  transition: .3s;
+  box-shadow: 2px 2px 0 var(--ink-black);
+}
+
+.comic-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--ink-black);
+  transition: .3s;
+  border: 2px solid white;
+}
+
+input:checked + .comic-slider {
+  background-color: var(--accent-yellow);
+}
+
+input:checked + .comic-slider:before {
+  transform: translateX(28px) rotate(360deg);
+}
+
+/* 底部导航 */
+.comic-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: var(--ink-black);
+  padding: 10px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+  display: flex;
+  justify-content: space-around;
+  border-top: 4px solid var(--accent-yellow);
+  z-index: 100;
+  height: auto;
+  min-height: var(--nav-height);
+}
+
+.nav-btn {
+  background: var(--paper-white);
+  border: 3px solid var(--ink-black);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-family: var(--font-comic);
+  font-size: 1.3rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(255,255,255,0.3);
+  transition: all 0.1s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0 rgba(255,255,255,0.3);
+}
+
+.nav-btn.active {
+  background: var(--accent-yellow);
+  transform: scale(1.1);
+}
+
+/* 拟声词 */
+.sound-effect {
+  position: fixed;
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 900;
+  color: var(--accent-red);
+  text-shadow: 3px 3px 0 var(--ink-black), -1px -1px 0 var(--paper-white);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  white-space: nowrap;
+}
+
+.sound-effect.pop {
+  animation: popSound 0.8s ease-out forwards;
+}
+
+@keyframes popSound {
+  0% { opacity: 0; transform: scale(0) rotate(-180deg); }
+  50% { opacity: 1; transform: scale(1.5) rotate(10deg); }
+  100% { opacity: 0; transform: scale(2) rotate(20deg) translateY(-50px); }
+}
+
+/* 游戏区域 */
+.game-container {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.target-emoji {
+  font-size: clamp(3rem, 15vw, 4rem);
+  cursor: pointer;
+  display: inline-block;
+  user-select: none;
+}
+
+/* 加载画面 */
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--accent-yellow);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: clamp(2rem, 10vw, 3rem);
+  font-weight: 900;
+  border: 4px solid black;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+
+.loader.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* 工具类 */
+.flex-row { display: flex; gap: 10px; align-items: center; }
+.flex-between { justify-content: space-between; }
+.mt-sm { margin-top: 10px; }
+.mb-sm { margin-bottom: 10px; }
+.text-center { text-align: center; }
+
+/* 排名样式 */
+.ranking-item {
+  background: white;
+  border: 3px solid var(--ink-black);
+  margin: 10px 0;
+  padding: 15px;
+  position: relative;
+  box-shadow: 4px 4px 0 var(--ink-black);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.ranking-item.rank-1 {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border-color: #b8860b;
+  transform: scale(1.05) rotate(-1deg);
+}
+
+.ranking-item.rank-2 {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e0e0e0 100%);
+  border-color: #808080;
+  transform: scale(1.02) rotate(0.5deg);
+}
+
+.ranking-item.rank-3 {
+  background: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+  border-color: #8b4513;
+  transform: scale(1) rotate(-0.5deg);
+}
+
+.rank-number {
+  font-size: 2rem;
+  font-weight: 900;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-black);
+  color: white;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rank-1 .rank-number { background: #b8860b; }
+.rank-2 .rank-number { background: #808080; }
+.rank-3 .rank-number { background: #8b4513; }
+
+.rank-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--accent-red);
+  text-shadow: 2px 2px 0 var(--ink-black);
+  -webkit-text-stroke: 1px var(--ink-black);
+}
+
+/* 投票卡片 */
+.vote-card {
+  background: white;
+  border: var(--comic-border);
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: var(--comic-shadow);
+  position: relative;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.vote-card.swiping-left {
+  border-left: 8px solid var(--accent-red);
+}
+
+.vote-card.swiping-right {
+  border-right: 8px solid #00aa00;
+}
+
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  font-weight: 900;
+  padding: 10px 15px;
+  border: 3px solid var(--ink-black);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.swipe-indicator.left {
+  left: 10px;
+  background: var(--accent-red);
+  color: white;
+}
+
+.swipe-indicator.right {
+  right: 10px;
+  background: #00aa00;
+  color: white;
+}
+
+/* 短屏幕适配 */
+@media (max-height: 700px) {
+  .comic-title { margin: 0.5rem 0; }
+  .speech-bubble { margin: 10px 0; padding: 12px; }
+  .comic-panel { margin: 10px 0; padding: 12px; }
+  .comic-list-item { margin: 6px 0; padding: 10px; }
+  .comic-btn { margin: 6px 0; }
+}
+
+@media (max-height: 600px) {
+  .comic-title { 
+    font-size: 1.8rem; 
+    text-shadow: 2px 2px 0 var(--accent-yellow), 4px 4px 0 var(--ink-black);
+    -webkit-text-stroke: 1px var(--ink-black);
+  }
+  .comic-title-zh {
+    font-size: 1.5rem;
+    text-shadow: 2px 2px 0 var(--accent-yellow), 3px 3px 0 rgba(0, 0, 0, 0.3);
+    line-height: 1.2;
+  }
+  .pages-wrapper { padding-bottom: 70px; }
+}
+
+/* 横屏提示 */
+@media (max-height: 400px) and (orientation: landscape) {
+  body::after {
+    content: "请竖屏使用以获得最佳体验";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--accent-yellow);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-align: center;
+    padding: 20px;
+    border: 4px solid black;
+  }
+}
