@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import DisclaimerPage from './pages/DisclaimerPage';
 import HomePage from './pages/HomePage';
 import RankingPage from './pages/RankingPage';
@@ -10,6 +10,7 @@ import ShitPage from './pages/ShitPage';
 import SharePage from './pages/SharePage';
 import { VoteDetails } from './types';
 import { submitVote } from './api/client';
+import { useWechatShare } from './hooks/useWechatShare';
 
 // 全局状态类型
 interface AppState {
@@ -35,9 +36,32 @@ const initialState: AppState = {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [state, setState] = useState<AppState>(initialState);
   const [isLoading, setIsLoading] = useState(true);
+
+  // 全局微信分享配置 - 根据当前页面动态调整
+  const getShareTitle = () => {
+    switch (location.pathname) {
+      case '/share':
+        return state.maskedName 
+          ? `我在${state.companyName || '某家公司'}给${state.maskedName}投喂了${state.shits}个粑粑！`
+          : '职场翔王排行榜';
+      case '/ranking':
+        return state.companyName 
+          ? `${state.companyName}的职场翔王排行榜`
+          : '全站职场翔王排行榜';
+      default:
+        return '职场翔王排行榜';
+    }
+  };
+
+  // 全局初始化微信分享
+  useWechatShare({
+    title: getShareTitle(),
+    desc: '快来一起吐槽职场混蛋吧！',
+  });
 
   // 页面映射
   const pageRoutes = [

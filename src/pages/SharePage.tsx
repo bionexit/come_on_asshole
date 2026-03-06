@@ -3,7 +3,7 @@ import { toPng } from 'html-to-image';
 import { createSoundEffect, createExplosion } from '../utils/animations';
 import { getSummary, type SummaryDetail } from '../api/client';
 import { getSummaryRating } from '../types';
-import { initWeChatSDK, setWeChatShareData, isWeChatBrowser } from '../utils/wechat';
+import { useWechatShare } from '../hooks/useWechatShare';
 
 interface SharePageProps {
   companyName: string;
@@ -42,43 +42,12 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 空依赖数组，只在组件挂载时执行一次，使用 hasSavedRef 防止重复
 
-  // 初始化微信分享
-  useEffect(() => {
-    const initWeChat = async () => {
-      // 只在微信浏览器中初始化
-      if (!isWeChatBrowser()) {
-        console.log('Not in WeChat browser, skip WeChat SDK init');
-        return;
-      }
-
-      try {
-        // 开启调试模式（会弹窗显示调试信息）
-        const initialized = await initWeChatSDK(true);
-        if (initialized) {
-          // 设置分享内容
-          const shareTitle = `我在${companyName || '某家公司'}给${maskedName}投喂了${shits}个粑粑！`;
-          const shareDesc = '快来一起吐槽职场翔王吧！';
-          // 使用原始页面 URL（去掉 hash）
-          const shareLink = window.location.href.split('#')[0];
-          // 使用 share-thumb.png 作为分享缩略图（300x300 像素）
-          const shareImgUrl = `${window.location.origin}/share-thumb.png`;
-
-          console.log('Setting share data:', { shareTitle, shareDesc, shareLink, shareImgUrl });
-
-          setWeChatShareData({
-            title: shareTitle,
-            desc: shareDesc,
-            link: shareLink,
-            imgUrl: shareImgUrl,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to init WeChat share:', error);
-      }
-    };
-
-    initWeChat();
-  }, [companyName, maskedName, shits]);
+  // 微信分享
+  useWechatShare({
+    title: `我在${companyName || '某家公司'}给${maskedName}投喂了${shits}个粑粑！`,
+    desc: '快来一起吐槽职场翔王吧！',
+    imgUrl: `${window.location.origin}/share-thumb.png`,
+  });
 
   // 礼花效果
   useEffect(() => {

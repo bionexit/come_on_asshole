@@ -1,22 +1,15 @@
 /**
- * 微信 JS-SDK 工具函数
+ * 微信 JS-SDK 工具函数 - 简化版
  */
 
-// 微信配置接口
-interface WeChatConfig {
-  appId: string;
+// 缓存配置
+let wxConfigCache: {
   timestamp: number;
-  nonceStr: string;
-  signature: string;
-}
+  url: string;
+} | null = null;
 
-// 分享内容接口
-interface ShareData {
-  title: string;
-  desc: string;
-  link: string;
-  imgUrl: string;
-}
+// 默认分享图片
+const DEFAULT_SHARE_IMG = 'https://asshole.bion.wang/share-thumb.png';
 
 /**
  * 加载微信 JS-SDK
@@ -28,16 +21,21 @@ export function loadWeChatSDK(): Promise<void> {
       return;
     }
 
-    // 如果已经加载过
-    if ((window as any).wx) {
+    const wx = (window as any).wx;
+    if (wx) {
+      console.log('[WeChat] SDK already loaded');
       resolve();
       return;
     }
 
+    console.log('[WeChat] Loading SDK...');
     const script = document.createElement('script');
     script.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
     script.async = true;
-    script.onload = () => resolve();
+    script.onload = () => {
+      console.log('[WeChat] SDK loaded');
+      resolve();
+    };
     script.onerror = () => reject(new Error('Failed to load WeChat SDK'));
     document.head.appendChild(script);
   });
@@ -46,73 +44,79 @@ export function loadWeChatSDK(): Promise<void> {
 /**
  * 获取微信配置（从后端）
  */
-async function getWeChatConfig(url: string): Promise<WeChatConfig> {
+async function getWeChatConfig(url: string): Promise<{
+  appId: string;
+  timestamp: number;
+  nonceStr: string;
+  signature: string;
+}> {
   const response = await fetch(`/api/wechat-signature?url=${encodeURIComponent(url)}`);
   if (!response.ok) {
-    throw new Error('Failed to get WeChat config');
+    const error = await response.text();
+    throw new Error(`Failed to get WeChat config: ${error}`);
   }
   return response.json();
 }
 
 /**
  * 初始化微信 JS-SDK
- * @param debug 是否开启调试模式
  */
-export async function initWeChatSDK(debug: boolean = false): Promise<boolean> {
+export async function initWeChatSDK(): Promise<boolean> {
   try {
     await loadWeChatSDK();
     const wx = (window as any).wx;
+    
     if (!wx) {
-      console.error('WeChat SDK not loaded');
+      console.error('[WeChat] SDK not available');
       return false;
     }
 
     // 获取当前页面 URL（去掉 hash）
     const url = window.location.href.split('#')[0];
-    console.log('Initializing WeChat SDK for URL:', url);
     
-    // 从后端获取签名
-    const config = await getWeChatConfig(url);
-    console.log('WeChat config received:', { appId: config.appId, timestamp: config.timestamp, nonceStr: config.nonceStr });
+    // 检查缓存
+    if (wxConfigCache && 
+        wxConfigCache.url === url && 
+        Date.now() - wxConfigCache.timestamp < 5 * 60 * 1000) {
+      console.log('[WeChat] Using cached config');
+      return true;
+    }
 
-    // 配置微信 JS-SDK
-    wx.config({
-      debug: debug, // 调试模式会alert弹窗显示调试信息
-      appId: config.appId,
-      timestamp: config.timestamp,
-      nonceStr: config.nonceStr,
-      signature: config.signature,
-      jsApiList: [
-        'checkJsApi',
-        'updateAppMessageShareData', // 分享给朋友
-        'updateTimelineShareData',   // 分享到朋友圈
-        'onMenuShareAppMessage',     // 兼容旧版本
-        'onMenuShareTimeline',       // 兼容旧版本
-      ],
+    console.log('[WeChat] Getting config for URL:', url);
+    const config = await getWeChatConfig(url);
+    console.log('[WeChat] Config received:', { 
+      appId: config.appId, 
+      timestamp: config.timestamp 
     });
 
     return new Promise((resolve) => {
+      wx.config({
+        debug: false, // 生产环境关闭调试
+        appId: config.appId,
+        timestamp: config.timestamp,
+        nonceStr: config.nonceStr,
+        signature: config.signature,
+        jsApiList: [
+          'updateAppMessageShareData',
+          'updateTimelineShareData',
+          'onMenuShareAppMessage',
+          'onMenuShareTimeline',
+        ],
+      });
+
       wx.ready(() => {
-        console.log('WeChat SDK ready');
-        // 检查接口是否可用
-        wx.checkJsApi({
-          jsApiList: ['updateTimelineShareData', 'onMenuShareTimeline'],
-          success: (res: any) => {
-            console.log('WeChat JS API check:', res);
-          },
-        });
+        console.log('[WeChat] SDK ready');
+        wxConfigCache = { timestamp: Date.now(), url };
         resolve(true);
       });
 
       wx.error((err: any) => {
-        console.error('WeChat SDK error:', err);
-        alert('微信配置失败: ' + JSON.stringify(err));
+        console.error('[WeChat] SDK config error:', err);
         resolve(false);
       });
     });
   } catch (error) {
-    console.error('Failed to init WeChat SDK:', error);
-    alert('初始化微信 SDK 失败: ' + (error as Error).message);
+    console.error('[WeChat] Init failed:', error);
     return false;
   }
 }
@@ -120,67 +124,67 @@ export async function initWeChatSDK(debug: boolean = false): Promise<boolean> {
 /**
  * 设置微信分享内容
  */
-export function setWeChatShareData(shareData: ShareData): void {
+export function setWeChatShareData(data: {
+  title: string;
+  desc: string;
+  link?: string;
+  imgUrl?: string;
+}): void {
   const wx = (window as any).wx;
   if (!wx) {
-    console.error('WeChat SDK not initialized');
+    console.error('[WeChat] SDK not initialized');
     return;
   }
 
-  console.log('Setting WeChat share data:', shareData);
+  const shareData = {
+    title: data.title,
+    desc: data.desc,
+    link: data.link || window.location.href.split('#')[0],
+    imgUrl: data.imgUrl || DEFAULT_SHARE_IMG,
+  };
 
-  // 分享到朋友圈（新版）
+  console.log('[WeChat] Setting share data:', shareData);
+
+  // 新版接口 - 分享到朋友圈
   if (wx.updateTimelineShareData) {
     wx.updateTimelineShareData({
       title: shareData.title,
       link: shareData.link,
       imgUrl: shareData.imgUrl,
-      success: () => {
-        console.log('Share config updated (timeline)');
-      },
-      fail: (err: any) => {
-        console.error('Share config failed (timeline):', err);
-      },
+      success: () => console.log('[WeChat] Timeline share set'),
+      fail: (err: any) => console.error('[WeChat] Timeline share failed:', err),
     });
-    console.log('updateTimelineShareData called');
   }
 
-  // 分享给朋友（新版）
+  // 新版接口 - 分享给朋友
   if (wx.updateAppMessageShareData) {
     wx.updateAppMessageShareData({
-      ...shareData,
-      success: () => {
-        console.log('Share config updated (app message)');
-      },
-      fail: (err: any) => {
-        console.error('Share config failed (app message):', err);
-      },
+      title: shareData.title,
+      desc: shareData.desc,
+      link: shareData.link,
+      imgUrl: shareData.imgUrl,
+      success: () => console.log('[WeChat] App message share set'),
+      fail: (err: any) => console.error('[WeChat] App message share failed:', err),
     });
-    console.log('updateAppMessageShareData called');
   }
 
-  // 兼容旧版本 - 分享到朋友圈
+  // 兼容旧版本
   if (wx.onMenuShareTimeline) {
     wx.onMenuShareTimeline({
       title: shareData.title,
       link: shareData.link,
       imgUrl: shareData.imgUrl,
-      success: () => console.log('Share success (timeline - old)'),
-      cancel: () => console.log('Share cancelled (timeline - old)'),
     });
-    console.log('onMenuShareTimeline called');
   }
 
-  // 兼容旧版本 - 分享给朋友
   if (wx.onMenuShareAppMessage) {
     wx.onMenuShareAppMessage({
-      ...shareData,
+      title: shareData.title,
+      desc: shareData.desc,
+      link: shareData.link,
+      imgUrl: shareData.imgUrl,
       type: 'link',
-      dataUrl: '',
-      success: () => console.log('Share success (app message - old)'),
-      cancel: () => console.log('Share cancelled (app message - old)'),
     });
-    console.log('onMenuShareAppMessage called');
   }
 }
 
@@ -190,5 +194,7 @@ export function setWeChatShareData(shareData: ShareData): void {
 export function isWeChatBrowser(): boolean {
   if (typeof window === 'undefined') return false;
   const ua = window.navigator.userAgent.toLowerCase();
-  return ua.includes('micromessenger');
+  const isWeChat = ua.includes('micromessenger');
+  console.log('[WeChat] Browser check:', isWeChat ? 'WeChat' : 'Other');
+  return isWeChat;
 }
