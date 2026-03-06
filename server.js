@@ -3,6 +3,7 @@ import { createClient } from '@libsql/client';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +21,96 @@ app.use(express.static('dist'));
 // 数据库连接
 const DB_PATH = process.env.VITE_TURSO_DATABASE_URL || 'file:/app/data/local.db';
 const client = createClient({ url: DB_PATH });
+
+// 微信配置
+const WECHAT_APP_ID = process.env.WECHAT_APP_ID || '';
+const WECHAT_APP_SECRET = process.env.WECHAT_APP_SECRET || '';
+const SERVER_URL = process.env.SERVER_URL || '';
+
+// 微信 access_token 和 jsapi_ticket 缓存
+let wechatCache = {
+  accessToken: '',
+  accessTokenExpireTime: 0,
+  jsapiTicket: '',
+  jsapiTicketExpireTime: 0,
+};
+
+/**
+ * 获取微信 access_token
+ */
+async function getWeChatAccessToken() {
+  const now = Date.now();
+  if (wechatCache.accessToken && now < wechatCache.accessTokenExpireTime) {
+    return wechatCache.accessToken;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_APP_ID}&secret=${WECHAT_APP_SECRET}`
+    );
+    const data = await response.json();
+    
+    if (data.access_token) {
+      wechatCache.accessToken = data.access_token;
+      // 提前 5 分钟过期
+      wechatCache.accessTokenExpireTime = now + (data.expires_in - 300) * 1000;
+      return data.access_token;
+    }
+    throw new Error(data.errmsg || 'Failed to get access_token');
+  } catch (error) {
+    console.error('Error getting WeChat access_token:', error);
+    throw error;
+  }
+}
+
+/**
+ * 获取微信 jsapi_ticket
+ */
+async function getWeChatJsapiTicket() {
+  const now = Date.now();
+  if (wechatCache.jsapiTicket && now < wechatCache.jsapiTicketExpireTime) {
+    return wechatCache.jsapiTicket;
+  }
+
+  try {
+    const accessToken = await getWeChatAccessToken();
+    const response = await fetch(
+      `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
+    );
+    const data = await response.json();
+    
+    if (data.ticket) {
+      wechatCache.jsapiTicket = data.ticket;
+      // 提前 5 分钟过期
+      wechatCache.jsapiTicketExpireTime = now + (data.expires_in - 300) * 1000;
+      return data.ticket;
+    }
+    throw new Error(data.errmsg || 'Failed to get jsapi_ticket');
+  } catch (error) {
+    console.error('Error getting WeChat jsapi_ticket:', error);
+    throw error;
+  }
+}
+
+/**
+ * 生成微信 JS-SDK 签名
+ */
+async function generateWeChatSignature(url) {
+  const jsapiTicket = await getWeChatJsapiTicket();
+  const timestamp = Math.floor(Date.now() / 1000);
+  const nonceStr = Math.random().toString(36).substring(2, 15);
+  
+  // 按照微信要求的格式拼接字符串
+  const string1 = `jsapi_ticket=${jsapiTicket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
+  const signature = crypto.createHash('sha1').update(string1).digest('hex');
+  
+  return {
+    appId: WECHAT_APP_ID,
+    timestamp,
+    nonceStr,
+    signature,
+  };
+}
 
 // 初始化数据库
 async function initDB() {
@@ -122,6 +213,30 @@ async function createVote(data) {
 // 健康检查
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// 微信 JS-SDK 签名接口
+app.get('/api/wechat-signature', async (req, res) => {
+  try {
+    // 检查配置
+    if (!WECHAT_APP_ID || !WECHAT_APP_SECRET) {
+      return res.status(500).json({ 
+        error: 'WeChat config not set',
+        message: '请在环境变量中配置 WECHAT_APP_ID 和 WECHAT_APP_SECRET'
+      });
+    }
+
+    const url = req.query.url;
+    if (!url) {
+      return res.status(400).json({ error: 'Missing url parameter' });
+    }
+
+    const signature = await generateWeChatSignature(url);
+    res.json(signature);
+  } catch (error) {
+    console.error('Error generating WeChat signature:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // 获取排行榜

@@ -260,6 +260,54 @@ PRs welcome! Whether it's:
 
 ---
 
+## 📱 微信朋友圈分享配置 | WeChat Share Setup
+
+要在微信朋友圈分享时显示卡片（标题+描述+缩略图），需要配置微信 JS-SDK：
+
+### 前置要求 | Prerequisites
+
+1. **微信公众号**（订阅号/服务号/小程序）
+2. **备案域名**（必须配置到公众号后台的JS接口安全域名）
+3. **服务器环境变量配置**
+
+### 配置步骤 | Configuration
+
+1. **复制环境变量模板**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **填写微信配置**
+   ```bash
+   # 微信公众号 AppID（在公众号后台获取）
+   WECHAT_APP_ID=wx your-app-id
+   
+   # 微信公众号 AppSecret（在公众号后台获取）
+   WECHAT_APP_SECRET=your-app-secret
+   
+   # 服务器域名（需要备案）
+   SERVER_URL=https://your-domain.com
+   ```
+
+3. **公众号后台配置**
+   - 登录 [微信公众平台](https://mp.weixin.qq.com)
+   - 进入「设置与开发」→「公众号设置」→「功能设置」
+   - 设置「JS接口安全域名」为你的备案域名
+   - 确保服务器 IP 在「IP白名单」中
+
+4. **准备分享缩略图**
+   - 将一张 300x300 像素的图片放入 `public/share-thumb.png`
+   - 或修改 `src/pages/SharePage.tsx` 中的 `shareImgUrl`
+
+### 工作原理 | How It Works
+
+- 页面加载时自动检测是否在微信浏览器中
+- 调用后端 `/api/wechat-signature` 接口获取签名
+- 使用微信 JS-SDK 配置分享内容
+- 分享卡片显示：标题 + 描述 + 缩略图
+
+---
+
 ## 🔗 相关链接 | Links
 
 - 🌐 **在线演示** Demo: [Click](https://asshole.biw.ac/)

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SVG to PNG</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    #svg-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    canvas {
+      display: none;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div id="svg-container">
+    <svg id="source-svg" width="300" height="300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="300" fill="#FFD700"/>
+      <rect x="10" y="10" width="280" height="280" fill="none" stroke="#000" stroke-width="8"/>
+      <rect x="20" y="20" width="260" height="80" fill="#FF4444"/>
+      <text x="150" y="55" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">COME ON</text>
+      <text x="150" y="85" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">ASSHOLE!</text>
+      <text x="150" y="170" font-size="80" text-anchor="middle">💩</text>
+      <text x="150" y="230" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#000" text-anchor="middle">职场翔王排行榜</text>
+      <text x="150" y="265" font-family="Arial, sans-serif" font-size="14" fill="#666" text-anchor="middle">一起吐槽职场混蛋</text>
+    </svg>
+  </div>
+  <canvas id="canvas" width="300" height="300"></canvas>
+  <button id="download">下载 PNG</button>
+
+  <script>
+    document.getElementById('download').addEventListener('click', function() {
+      const svg = document.getElementById('source-svg');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const img = new Image();
+      
+      img.onload = function() {
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(0, 0, 300, 300);
+        ctx.drawImage(img, 0, 0);
+        
+        const link = document.createElement('a');
+        link.download = 'share-thumb.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    });
+    
+    // Auto download after 1 second
+    setTimeout(function() {
+      document.getElementById('download').click();
+    }, 1000);
+  </script>
+</body>
+</html>
