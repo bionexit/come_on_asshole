@@ -11,6 +11,8 @@ services:
     volumes:
       # 持久化数据库文件
       - ./data:/app/data
+    env_file:
+      - .env.local
     environment:
       - NODE_ENV=production
       - PORT=5173
