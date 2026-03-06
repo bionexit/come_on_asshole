@@ -56,8 +56,9 @@ async function getWeChatConfig(url: string): Promise<WeChatConfig> {
 
 /**
  * 初始化微信 JS-SDK
+ * @param debug 是否开启调试模式
  */
-export async function initWeChatSDK(): Promise<boolean> {
+export async function initWeChatSDK(debug: boolean = false): Promise<boolean> {
   try {
     await loadWeChatSDK();
     const wx = (window as any).wx;
@@ -68,18 +69,21 @@ export async function initWeChatSDK(): Promise<boolean> {
 
     // 获取当前页面 URL（去掉 hash）
     const url = window.location.href.split('#')[0];
+    console.log('Initializing WeChat SDK for URL:', url);
     
     // 从后端获取签名
     const config = await getWeChatConfig(url);
+    console.log('WeChat config received:', { appId: config.appId, timestamp: config.timestamp, nonceStr: config.nonceStr });
 
     // 配置微信 JS-SDK
     wx.config({
-      debug: false, // 生产环境设为 false
+      debug: debug, // 调试模式会alert弹窗显示调试信息
       appId: config.appId,
       timestamp: config.timestamp,
       nonceStr: config.nonceStr,
       signature: config.signature,
       jsApiList: [
+        'checkJsApi',
         'updateAppMessageShareData', // 分享给朋友
         'updateTimelineShareData',   // 分享到朋友圈
         'onMenuShareAppMessage',     // 兼容旧版本
@@ -90,16 +94,25 @@ export async function initWeChatSDK(): Promise<boolean> {
     return new Promise((resolve) => {
       wx.ready(() => {
         console.log('WeChat SDK ready');
+        // 检查接口是否可用
+        wx.checkJsApi({
+          jsApiList: ['updateTimelineShareData', 'onMenuShareTimeline'],
+          success: (res: any) => {
+            console.log('WeChat JS API check:', res);
+          },
+        });
         resolve(true);
       });
 
       wx.error((err: any) => {
         console.error('WeChat SDK error:', err);
+        alert('微信配置失败: ' + JSON.stringify(err));
         resolve(false);
       });
     });
   } catch (error) {
     console.error('Failed to init WeChat SDK:', error);
+    alert('初始化微信 SDK 失败: ' + (error as Error).message);
     return false;
   }
 }
@@ -114,40 +127,60 @@ export function setWeChatShareData(shareData: ShareData): void {
     return;
   }
 
-  // 新版接口
-  if (wx.updateAppMessageShareData) {
-    wx.updateAppMessageShareData({
-      ...shareData,
-      success: () => console.log('Share config updated (app message)'),
-    });
-  }
+  console.log('Setting WeChat share data:', shareData);
 
+  // 分享到朋友圈（新版）
   if (wx.updateTimelineShareData) {
     wx.updateTimelineShareData({
       title: shareData.title,
       link: shareData.link,
       imgUrl: shareData.imgUrl,
-      success: () => console.log('Share config updated (timeline)'),
+      success: () => {
+        console.log('Share config updated (timeline)');
+      },
+      fail: (err: any) => {
+        console.error('Share config failed (timeline):', err);
+      },
     });
+    console.log('updateTimelineShareData called');
   }
 
-  // 兼容旧版本
-  if (wx.onMenuShareAppMessage) {
-    wx.onMenuShareAppMessage({
+  // 分享给朋友（新版）
+  if (wx.updateAppMessageShareData) {
+    wx.updateAppMessageShareData({
       ...shareData,
-      type: 'link',
-      dataUrl: '',
-      success: () => console.log('Share success (app message)'),
+      success: () => {
+        console.log('Share config updated (app message)');
+      },
+      fail: (err: any) => {
+        console.error('Share config failed (app message):', err);
+      },
     });
+    console.log('updateAppMessageShareData called');
   }
 
+  // 兼容旧版本 - 分享到朋友圈
   if (wx.onMenuShareTimeline) {
     wx.onMenuShareTimeline({
       title: shareData.title,
       link: shareData.link,
       imgUrl: shareData.imgUrl,
-      success: () => console.log('Share success (timeline)'),
+      success: () => console.log('Share success (timeline - old)'),
+      cancel: () => console.log('Share cancelled (timeline - old)'),
     });
+    console.log('onMenuShareTimeline called');
+  }
+
+  // 兼容旧版本 - 分享给朋友
+  if (wx.onMenuShareAppMessage) {
+    wx.onMenuShareAppMessage({
+      ...shareData,
+      type: 'link',
+      dataUrl: '',
+      success: () => console.log('Share success (app message - old)'),
+      cancel: () => console.log('Share cancelled (app message - old)'),
+    });
+    console.log('onMenuShareAppMessage called');
   }
 }
 

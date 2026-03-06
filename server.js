@@ -45,20 +45,29 @@ async function getWeChatAccessToken() {
   }
 
   try {
+    console.log('Fetching WeChat access_token...');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
+    
     const response = await fetch(
-      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_APP_ID}&secret=${WECHAT_APP_SECRET}`
+      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${WECHAT_APP_ID}&secret=${WECHAT_APP_SECRET}`,
+      { signal: controller.signal }
     );
+    clearTimeout(timeout);
+    
     const data = await response.json();
+    console.log('WeChat token response:', { errcode: data.errcode, expires_in: data.expires_in });
     
     if (data.access_token) {
       wechatCache.accessToken = data.access_token;
       // 提前 5 分钟过期
       wechatCache.accessTokenExpireTime = now + (data.expires_in - 300) * 1000;
+      console.log('WeChat access_token cached, expires in', data.expires_in, 'seconds');
       return data.access_token;
     }
     throw new Error(data.errmsg || 'Failed to get access_token');
   } catch (error) {
-    console.error('Error getting WeChat access_token:', error);
+    console.error('Error getting WeChat access_token:', error.message);
     throw error;
   }
 }
@@ -73,21 +82,31 @@ async function getWeChatJsapiTicket() {
   }
 
   try {
+    console.log('Fetching WeChat jsapi_ticket...');
     const accessToken = await getWeChatAccessToken();
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10秒超时
+    
     const response = await fetch(
-      `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`
+      `https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=${accessToken}&type=jsapi`,
+      { signal: controller.signal }
     );
+    clearTimeout(timeout);
+    
     const data = await response.json();
+    console.log('WeChat ticket response:', { errcode: data.errcode, expires_in: data.expires_in });
     
     if (data.ticket) {
       wechatCache.jsapiTicket = data.ticket;
       // 提前 5 分钟过期
       wechatCache.jsapiTicketExpireTime = now + (data.expires_in - 300) * 1000;
+      console.log('WeChat jsapi_ticket cached, expires in', data.expires_in, 'seconds');
       return data.ticket;
     }
     throw new Error(data.errmsg || 'Failed to get jsapi_ticket');
   } catch (error) {
-    console.error('Error getting WeChat jsapi_ticket:', error);
+    console.error('Error getting WeChat jsapi_ticket:', error.message);
     throw error;
   }
 }
@@ -220,22 +239,28 @@ app.get('/api/wechat-signature', async (req, res) => {
   try {
     // 检查配置
     if (!WECHAT_APP_ID || !WECHAT_APP_SECRET) {
+      console.error('WeChat config not set');
       return res.status(500).json({ 
         error: 'WeChat config not set',
         message: '请在环境变量中配置 WECHAT_APP_ID 和 WECHAT_APP_SECRET'
       });
     }
 
-    const url = req.query.url;
+    let url = req.query.url;
     if (!url) {
       return res.status(400).json({ error: 'Missing url parameter' });
     }
 
+    // URL 解码
+    url = decodeURIComponent(url);
+    console.log('Generating signature for URL:', url);
+    
     const signature = await generateWeChatSignature(url);
+    console.log('Signature generated successfully');
     res.json(signature);
   } catch (error) {
-    console.error('Error generating WeChat signature:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error generating WeChat signature:', error.message);
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
 

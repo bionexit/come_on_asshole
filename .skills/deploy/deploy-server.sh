@@ -36,12 +36,22 @@ sudo docker build -t come-on-asshole:latest .
 
 echo ""
 echo "[5/5] 启动新容器..."
+
+# 加载环境变量（如果 .env.local 存在）
+if [ -f "$APP_DIR/.env.local" ]; then
+    echo "加载环境变量..."
+    export $(grep -v '^#' $APP_DIR/.env.local | xargs)
+fi
+
 sudo docker run -d \
     --name come-on-asshole \
     -p 5173:5173 \
     -v $DATA_DIR:/app/data \
     -e NODE_ENV=production \
     -e PORT=5173 \
+    -e WECHAT_APP_ID="${WECHAT_APP_ID:-}" \
+    -e WECHAT_APP_SECRET="${WECHAT_APP_SECRET:-}" \
+    -e SERVER_URL="${SERVER_URL:-}" \
     --restart unless-stopped \
     come-on-asshole:latest
 

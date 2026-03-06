@@ -52,14 +52,18 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
       }
 
       try {
-        const initialized = await initWeChatSDK();
+        // 开启调试模式（会弹窗显示调试信息）
+        const initialized = await initWeChatSDK(true);
         if (initialized) {
           // 设置分享内容
           const shareTitle = `我在${companyName || '某家公司'}给${maskedName}投喂了${shits}个粑粑！`;
           const shareDesc = '快来一起吐槽职场翔王吧！';
-          const shareLink = window.location.href;
+          // 使用原始页面 URL（去掉 hash）
+          const shareLink = window.location.href.split('#')[0];
           // 使用 share-thumb.png 作为分享缩略图（300x300 像素）
           const shareImgUrl = `${window.location.origin}/share-thumb.png`;
+
+          console.log('Setting share data:', { shareTitle, shareDesc, shareLink, shareImgUrl });
 
           setWeChatShareData({
             title: shareTitle,
@@ -67,7 +71,6 @@ function SharePage({ companyName, maskedName, shits, onSaveData, onGoToRanking }
             link: shareLink,
             imgUrl: shareImgUrl,
           });
-          console.log('WeChat share data set');
         }
       } catch (error) {
         console.error('Failed to init WeChat share:', error);
